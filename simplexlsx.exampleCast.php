@@ -1,77 +1,78 @@
 <?php
+
 ini_set('error_reporting', E_ALL)							;
 ini_set('display_errors', 1)								; 
 ini_set('display_startup_errors', 1)						;
 ini_set('memory_limit', '2048M')							;
-ini_set('max_execution_time', 300)							; //300 seconds = 5 minutes
+ini_set('max_execution_time', 3000)							; //300 seconds = 5 minutes
 
-require_once __DIR__ . '/simpleXLSX/simplexlsx.class.php'	;
-require_once __DIR__ . '/SuperFilter/SuperFilter.php'		;
-$price 	= SimpleXLSX::parse('./price/4.xlsx')			    ; // прайс поставщика
-//$best 	= SimpleXLSX::parse('./price/small.xlsx')			; // прайст образец
+require_once __DIR__ . '/simpleXLSX/simplexlsx.class.php'	; // подключаем класс для парсинга xlsx
+require_once __DIR__ . '/SuperFilter/SuperFilter.php'		; // подключаем класс для поиска в прайсах
 
-$Filter 	= new SuperFilter()					; 
- 
-$pathBest	= __DIR__ . '/price/4.csv'			; // путь к файлу
-//$pathPrice	= __DIR__ . '/price/4.xlsx'			; // путь к файлу
+$Filter 		= new SuperFilter()							; // класс для поиска в прайсах  
+$price 			= SimpleXLSX::parse('./price/2.xlsx')		; // прайс поставщика
+$best			= __DIR__ . '/price/medium.csv'				; // путь к файлу идеального прайса
+$resultFile		= __DIR__ . '/result/result.html'			; // путь к результирующему файлу
 
-//$best		= $Filter->readTheFile($pathBest)		; // включаем генератор нахуй
-//$price	= $Filter->readTheFile($pathPrice)		; // включаем генератор нахуй
-echo "<pre>";
-//foreach($Filter->readTheFile($pathBest) as $i){
-// var_dump($i);
-//}
-foreach ($Filter->readTheFile($pathBest) as $row) {
-	var_dump($row);
-}
-echo "</pre>";
-if (/* $best &&*/ $price ) {
+
+
+if ($best && $price ) {
 	$i = 0;
 	$a = 0;
 	$b = 0;
 
-	echo '<table>';
-	echo '<tr>'	;
-	echo '<td> Идеальный прайс </td><td> Совпадение </td>';
-	echo '</tr>';
+	echo '<table>'													;
+	echo '<tr>'														;
+	echo '<td>#</td><td> Идеальный прайс </td><td> Совпадение </td>';
+	echo '</tr>'													;
 	
-	// foreach( $best as $row){
-	// 	$i = ($i+1);
-	// 	str_getcsv($row);
-	// 	echo '<pre>'  ;
-	// 	var_dump($row) ;
-	// 	echo '</pre>' ;
-	// 	$FullName			= $row[1]	; //	=> полное название с размерами
-	// 	$quantity 			= $row[4]	; //	=> кол-во
-	// 	$brand 				= $row[6]   ; //    => Бренд
-	// 	$model				= $row[5]	; //	=> model
-	// 	$width 			    = $row[7]	; //	=> ширина (255)
-	// 	$height 			= $row[8]	; //	=> высота (55)
-	// 	$radius 			= $row[9]	; //	=>  радиус (R16) 
-	// 	$speed_code			= $row[11]  ; //	=> индекс скорости (буква)
-	// 	$load_index			= $row[12]  ; //	=> индекс нагрузки (буквы) 
-    // 	$country			= $row[56]  ; // 	=> country
-	// 	$year				= $row[57]  ; // 	=> year
+	foreach( $Filter->parse($best) as $row){
+		// echo '<pre>';
+		// echo $a . '<br>';
+		// echo '</pre>';
+		$i 					= ($i+1)						; //	счетчик
+		$FullName			= $row['name']					; //	=> полное название с размерами
+		$quantity 			= $row['quantity']				; //	=> кол-во
+		$brand 				= $row['shinumanufacturer']   	; //    => Бренд
+		$model				= $row['model']					; //	=> model
+		$width 			    = $row['widths']				; //	=> ширина (255)
+		$height 			= $row['heights']				; //	=> высота (55)
+		$radius 			= $row['radius']				; //	=>  радиус (R16) 
+		$speed_code			= $row['speed_code']  			; //	=> индекс скорости (буква)
+		$load_index			= $row['load_index']  			; //	=> индекс нагрузки (буквы) 
+    	$country			= $row['country']  				; // 	=> country
+		$year				= $row['year']  				; // 	=> year
 
-	// 	$brand 				= $Filter->strSlimm($brand)	; // чистим строку
-	// 	$model 				= $Filter->strSlimm($model)	; // чистим строку
-	// 	$radius				= $Filter->strSlimm($radius); // чистим строку
-	// 	$widthAndHeight		= $width . $height			; // обьединяем строку в формат 25555	
+		$brand 				= $Filter->strSlimm($brand)		; // чистим строку
+		$model 				= $Filter->strSlimm($model)		; // чистим строку
+		$radius				= $Filter->strSlimm($radius)	; // чистим строку
+		$speed_code			= $Filter->strSlimm($speed_code); // чистим строку
+		$load_index			= $Filter->strSlimm($load_index); // чистим строку
 
-	// 	foreach($price as $str){
-	// 		$bestSTR	= $str																; //делаем копию строку
-	// 		$str 		= $Filter->ArrStrSlimm($str)							    		; // убираем пробелы и лишние символы
-	// 		$result 	= $Filter->search($str, $brand, $model, $widthAndHeight, $radius)	; // ищем совпадение
-	// 		if($result){
-	// 			echo '<tr>'	;
-	// 			echo '<td>' . $brand . ' ' .  $model .' ' . $radius .' ' . $width .' ' . $height  . '</td><td>' . implode($bestSTR) . '</td>';
-	// 			echo '</tr>';
-	// 			$b = ($b+1);
-	// 		}
-	// 		$a = ($a+1);
-	// 	}
-	
-	// } 
+		$size				= $width . $height				; // обьединяем строку в формат 25555	
+		$index 				= $load_index . $speed_code		; // обьединяем индекс нагрузки и скорости
+
+		foreach($price->rows(1) as $str){
+			$bestSTR	= $str																; // делаем копию строку
+			$str 		= $Filter->ArrStrSlimm($str)							    		; // убираем пробелы и лишние символы
+			$result 	= $Filter->search($str, $brand, $model, $size, $radius, $index)		; // ищем совпадение
+			if($result){
+				$b = ($b+1);
+				// echo '<tr>'	;
+				// echo '<td>' . $b . '</td><td>' . $FullName . '</td><td>' . $str . '</td>';
+				// echo '</tr>';
+				$string = '<tr><td>' . $b . '</td><td>' . $FullName . '</td><td>' . $bestSTR . '</td></tr>' . PHP_EOL;
+				$handle = fopen($resultFile,"a");
+				file_put_contents($resultFile, $string, FILE_APPEND | LOCK_EX);
+				fclose($handle);
+				break	;
+			}
+		}
+	} 
+	foreach($price->rows(1) as $str){
+		$a = ($a+1);
+	}
+	echo "готово!";
 	memory_get_peak_usage();
 
 	function formatBytes($bytes, $precision = 2) {

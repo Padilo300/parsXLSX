@@ -1,16 +1,16 @@
 <?php
+
 // в этом классе описываются методы для поиска и обработки строк
+
 class SuperFilter {
 
     // Читать файл через генератор
     public function readTheFile($file){
-        $handle = fopen($file, "r");
-        
+        $handle = fopen($file, "r"); 
         while (!feof($handle)) {
             yield fgetcsv($handle);
         }
-        fclose($handle);
-        
+        fclose($handle);  
     }
     
     
@@ -19,29 +19,21 @@ class SuperFilter {
     // - Создаем не асоциативный массив 
     // - Элементы которого названия столбцов
     // это нужно чтобы создать асоциативный массив при разборе строки с товаром
-    public function parceCSV($pathBest){        
-        if (($handle = fopen($pathBest, 'r')) !== FALSE){
-            $arr = array();
-            if (($data = fgetcsv($handle, 1000, ',')) !== FALSE){
-                foreach($data as $item){
-                    $arr[] = $item;
-                }
+    public function parse($file) {
+        $file = fopen($file, 'r');
+        $headers = array_map('trim', fgetcsv($file, 4096));
+        while (!feof($file)) {
+            $row = array_map('trim', (array)fgetcsv($file, 4096));
+            if (count($headers) !== count($row)) {
+                continue;
             }
-            while (($data = fgetcsv($handle, 1000, ',')) !== FALSE){
-            	//echo '<tr><td>'.implode('</td><td>', $data).'</td></tr>';
-            	echo '<pre>';
-            	foreach($data as $item){
-            		var_dump($item);
-            	}
-            	echo '</pre>';
-            }
-            fclose($handle);
-            return $arr;
-        }else{
-            return FALSE;
+            $row = array_combine($headers, $row);
+            yield $row;
         }
-        
+        return;
+        fclose($file); 
     }
+    
     
     // чистка строки из массива
     public function ArrStrSlimm($str){
@@ -54,6 +46,7 @@ class SuperFilter {
             echo 'Не получилось разьебать строку';
         }
         return $str;
+        unset($str);
     }
 
     // чистка строки
@@ -67,46 +60,31 @@ class SuperFilter {
             echo 'Не получилось разьебать строку';
         }
         return $str;
+        unset($str);
     }
 
     //невьебенный поиск нужной строки
-    public function search($str, $brand , $model, $widthAndHeigh, $radius){
-        $result = '';
+    public function search($str, $brand , $model, $size, $radius, $index){
+        $result = false;
+        // $str = строка в которой искать
         if(stristr($str, $brand)) {
             if(stristr($str, $model)){
                 if(stristr($str, $radius)){
-                    if(stristr($str, $widthAndHeigh)){
-                        $result =   true;
-                    }else{
-                        $result =   false;
+                    if(stristr($str, $size)){
+                        if(stristr($str, $index)){
+                            $result = true;
+                        }
                     }
                 }
             }
+        }else{
+            $result = false;
         }
+        unset($str);
         return $result;
     }
 
+   
+
 }
 
-
-class CsvIterator {
- 
-    protected $file;
- 
-    public function __construct($file) {
-        $this->file = fopen($file, 'r');
-    }
- 
-    public function parse() {
-        $headers = array_map('trim', fgetcsv($this->file, 4096));
-        while (!feof($this->file)) {
-            $row = array_map('trim', (array)fgetcsv($this->file, 4096));
-            if (count($headers) !== count($row)) {
-                continue;
-            }
-            $row = array_combine($headers, $row);
-            yield $row;
-        }
-        return;
-    }
-}
